@@ -1,6 +1,7 @@
 // 전역 변수
 let studentsList = [];
 let templateFile = null;
+let studentInfoList = [];
 
 // DOM이 로드된 후 실행
 document.addEventListener("DOMContentLoaded", function () {
@@ -106,6 +107,18 @@ document.addEventListener("DOMContentLoaded", function () {
 
       // 리스트에 추가
       studentsList.push(studentName);
+
+      // studentInfoList에 객체 추가
+      const currentIndex = studentsList.length - 1;
+      const certNum = getCertiNum(currentIndex);
+      studentInfoList.push({
+        cert_num: certNum,
+        stu_name: studentName,
+        edu_date: eduDate.value,
+        location: location.value,
+        subject_name: subName.value,
+      });
+
       addedCount++;
     });
 
@@ -163,6 +176,11 @@ document.addEventListener("DOMContentLoaded", function () {
   window.removeStudent = function (index) {
     if (confirm(`'${studentsList[index]}'를 삭제하시겠습니까?`)) {
       studentsList.splice(index, 1);
+      studentInfoList.splice(index, 1);
+      // 삭제 후 인덱스에 맞춰 일련번호 재계산
+      studentInfoList.forEach((info, idx) => {
+        info.cert_num = getCertiNum(idx);
+      });
       updateStudentList();
     }
   };
@@ -226,13 +244,13 @@ document.addEventListener("DOMContentLoaded", function () {
     // 헤더
     const headers = [["일련번호", "학생이름", "과정명", "장소", "날짜"]];
 
-    // 데이터
-    const data = studentsList.map((student, index) => [
-      getCertiNum(index),
-      student,
-      subName.value,
-      location.value,
-      eduDate.value,
+    // 데이터 - studentInfoList 사용
+    const data = studentInfoList.map((info) => [
+      info.cert_num,
+      info.stu_name,
+      info.subject_name,
+      info.location,
+      info.edu_date,
     ]);
 
     // 워크시트 생성
@@ -246,7 +264,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // 워드로 출력
   async function exportToWord() {
-    if (studentsList.length === 0) {
+    if (studentInfoList.length === 0) {
       alert("출력할 학생명이 없습니다.");
       return;
     }
@@ -269,18 +287,17 @@ document.addEventListener("DOMContentLoaded", function () {
       const arrayBuffer = await templateFile.arrayBuffer();
 
       // 각 학생마다 파일 생성 (딜레이를 두고 순차적으로 다운로드)
-      for (let idx = 0; idx < studentsList.length; idx++) {
-        const student = studentsList[idx];
-        const certiNum = getCertiNum(idx);
+      for (let idx = 0; idx < studentInfoList.length; idx++) {
+        const studentInfo = studentInfoList[idx];
 
         // 템플릿 파일 복사 및 수정
         const modifiedDocx = await processTemplateFile(
           arrayBuffer,
-          certiNum,
-          student,
-          subName.value,
-          location.value,
-          eduDate.value,
+          studentInfo.cert_num,
+          studentInfo.stu_name,
+          studentInfo.subject_name,
+          studentInfo.location,
+          studentInfo.edu_date,
           idx + 1
         );
 
@@ -288,7 +305,7 @@ document.addEventListener("DOMContentLoaded", function () {
         const blob = new Blob([modifiedDocx], {
           type: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         });
-        const fileName = sanitizeFilename(student) + ".docx";
+        const fileName = sanitizeFilename(studentInfo.stu_name) + ".docx";
 
         // FileSaver 사용
         if (typeof saveAs !== "undefined") {
@@ -306,12 +323,12 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         // 각 파일 다운로드 사이에 딜레이 추가 (브라우저가 여러 파일을 처리할 수 있도록)
-        if (idx < studentsList.length - 1) {
+        if (idx < studentInfoList.length - 1) {
           await new Promise((resolve) => setTimeout(resolve, 300));
         }
       }
 
-      alert(`${studentsList.length}개의 워드 파일이 생성되었습니다!`);
+      alert(`${studentInfoList.length}개의 워드 파일이 생성되었습니다!`);
 
       // 페이지 리로딩
       setTimeout(() => {
@@ -342,16 +359,13 @@ document.addEventListener("DOMContentLoaded", function () {
     // 텍스트 교체
     let modifiedXml = documentXml;
 
-    // 교체할 텍스트 매핑
+    // 교체할 텍스트 매핑 - 샘플 파일의 값들
     const replacements = {
-      "Dayeon Mun": studName,
-      "MDR/ISO13485:2016 Internal Auditor Training Course\n16Hours/2Days Training Course":
-        subName,
-      "MDR/ISO13485:2016 Internal Auditor Training Course": subName,
-      "16Hours/2Days Training Course": subName,
-      "Seoul, Korea": location,
-      "11th – 12th December 2025": eduDate,
-      "11th - 12th December 2025": eduDate,
+      일련번호: certiNum,
+      학생명: studName,
+      강좌명: subName,
+      장소명: location,
+      교육날짜: eduDate,
     };
 
     // 텍스트 교체 (XML 내에서 직접 교체)
@@ -369,13 +383,6 @@ document.addEventListener("DOMContentLoaded", function () {
         `$1${escapedNew}$3`
       );
     });
-
-    // 일련번호 패턴 교체
-    const certiNumPattern = /26\/ISO13485:2016-IAC-IH-KR\/(\d+)/g;
-    const certiNumReplacement = `26/ISO13485:2016-IAC-IH-KR/${String(
-      studentIndex
-    ).padStart(2, "0")}`;
-    modifiedXml = modifiedXml.replace(certiNumPattern, certiNumReplacement);
 
     // 수정된 XML을 ZIP에 다시 쓰기
     zip.file("word/document.xml", modifiedXml);
