@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>파일생성기</title>
+    <link rel="stylesheet" href="styles.css" />
+    <!-- SheetJS for Excel -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+    <!-- docx.js for Word -->
+    <script src="https://unpkg.com/docx@8.5.0/build/index.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <!-- FileSaver for downloads -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>파일생성기</h1>
+      </header>
+
+      <!-- 초기 입력값 섹션 -->
+      <section class="input-section">
+        <h2>초기 입력값 (복붙 가능: Ctrl+V 또는 Cmd+V)</h2>
+
+        <div class="form-group">
+          <label for="templateFile">샘플 Word 파일:</label>
+          <div class="file-input-group">
+            <input
+              type="file"
+              id="templateFile"
+              accept=".docx"
+              style="display: none"
+            />
+            <input
+              type="text"
+              id="templateFileName"
+              readonly
+              placeholder="선택되지 않음"
+            />
+            <button type="button" id="selectTemplateBtn">찾아보기</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="certiNumStart">일련번호 초기값:</label>
+          <input
+            type="text"
+            id="certiNumStart"
+            value="26/ISO13485:2016-IAC-IH-KR/01"
+            placeholder="예: 26/ISO13485:2016-IAC-IH-KR/01"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="subName">과정명:</label>
+          <input
+            type="text"
+            id="subName"
+            value="파이썬 프로그래밍 기초"
+            placeholder="과정명을 입력하세요"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="location">장소:</label>
+          <input
+            type="text"
+            id="location"
+            value="서울시 강남구"
+            placeholder="장소를 입력하세요"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="eduDate">날짜:</label>
+          <input
+            type="text"
+            id="eduDate"
+            value="2024-01-15"
+            placeholder="날짜를 입력하세요"
+          />
+        </div>
+      </section>
+
+      <!-- 학생명 입력 섹션 -->
+      <section class="student-section">
+        <h2>학생명 입력 (여러 줄 복붙 가능: Ctrl+V 또는 Cmd+V)</h2>
+        <div class="input-group">
+          <textarea
+            id="studentInput"
+            rows="4"
+            placeholder="학생명을 입력하세요 (여러 줄 가능)"
+          ></textarea>
+          <div class="button-group">
+            <button type="button" id="addStudentBtn">확인</button>
+            <button type="button" id="clearBtn">정정</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 학생 리스트 섹션 -->
+      <section class="list-section">
+        <h2>학생명 리스트 (더블클릭 시 삭제)</h2>
+        <div id="studentList" class="student-list"></div>
+      </section>
+
+      <!-- 출력 버튼 -->
+      <section class="output-section">
+        <button type="button" id="exportExcelBtn" class="export-btn">
+          엑셀로 출력
+        </button>
+        <button type="button" id="exportWordBtn" class="export-btn">
+          상장으로 출력
+        </button>
+      </section>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
