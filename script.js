@@ -15,6 +15,8 @@ document.addEventListener("DOMContentLoaded", function () {
   const subName = document.getElementById("subName");
   const location = document.getElementById("location");
   const eduDate = document.getElementById("eduDate");
+  const eduHours = document.getElementById("eduHours");
+  const eduDays = document.getElementById("eduDays");
   const studentInput = document.getElementById("studentInput");
   const addStudentBtn = document.getElementById("addStudentBtn");
   const clearBtn = document.getElementById("clearBtn");
@@ -111,12 +113,16 @@ document.addEventListener("DOMContentLoaded", function () {
       // studentInfoList에 객체 추가
       const currentIndex = studentsList.length - 1;
       const certNum = getCertiNum(currentIndex);
+      const hours = parseInt(eduHours.value) || 0;
+      const days = parseInt(eduDays.value) || 0;
       studentInfoList.push({
         cert_num: certNum,
         stu_name: studentName,
         edu_date: eduDate.value,
         location: location.value,
         subject_name: subName.value,
+        edu_hours: hours,
+        edu_days: days,
       });
 
       addedCount++;
@@ -161,13 +167,11 @@ document.addEventListener("DOMContentLoaded", function () {
       const item = document.createElement("div");
       item.className = "student-item";
       item.innerHTML = `
-                <div class="student-info">
-                    <strong>${
-                      index + 1
-                    }. ${student}</strong> (일련번호: ${certiNum})
-                </div>
-                <button class="delete-btn" onclick="removeStudent(${index})">삭제</button>
-            `;
+        <div class="student-info">
+          <strong>${index + 1}. ${student}</strong> (일련번호: ${certiNum})
+        </div>
+        <button class="delete-btn" onclick="removeStudent(${index})">삭제</button>
+      `;
       studentList.appendChild(item);
     });
   }
@@ -298,6 +302,8 @@ document.addEventListener("DOMContentLoaded", function () {
           studentInfo.subject_name,
           studentInfo.location,
           studentInfo.edu_date,
+          studentInfo.edu_hours || 0,
+          studentInfo.edu_days || 0,
           idx + 1
         );
 
@@ -328,16 +334,20 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
 
-      alert(`${studentInfoList.length}개의 워드 파일이 생성되었습니다!`);
-
       // 페이지 리로딩
       setTimeout(() => {
         location.reload();
       }, 1000);
     } catch (error) {
       console.error("Error:", error);
-      alert(`워드 파일 생성 중 오류가 발생했습니다:\n${error.message}`);
     }
+  }
+
+  // 이수시간/이수날짜 포맷팅 함수
+  function formatEduTime(hours, days) {
+    const hourText = hours === 1 ? "Hour" : "Hours";
+    const dayText = days === 1 ? "Day" : "Days";
+    return `${hours}${hourText}/${days}${dayText} Training Course`;
   }
 
   // 템플릿 파일 처리
@@ -348,6 +358,8 @@ document.addEventListener("DOMContentLoaded", function () {
     subName,
     location,
     eduDate,
+    eduHours,
+    eduDays,
     studentIndex
   ) {
     // JSZip으로 docx 파일 열기 (docx는 ZIP 형식)
@@ -359,6 +371,9 @@ document.addEventListener("DOMContentLoaded", function () {
     // 텍스트 교체
     let modifiedXml = documentXml;
 
+    // 이수시간/이수날짜 포맷팅된 문자열 생성
+    const eduTimeFormatted = formatEduTime(eduHours, eduDays);
+
     // 교체할 텍스트 매핑 - 샘플 파일의 값들
     const replacements = {
       일련번호: certiNum,
@@ -366,6 +381,7 @@ document.addEventListener("DOMContentLoaded", function () {
       강좌명: subName,
       장소명: location,
       교육날짜: eduDate,
+      교육시간: eduTimeFormatted,
     };
 
     // 텍스트 교체 (XML 내에서 직접 교체)
