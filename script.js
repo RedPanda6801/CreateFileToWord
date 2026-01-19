@@ -376,12 +376,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // 교체할 텍스트 매핑 - 샘플 파일의 값들
     const replacements = {
-      일련번호: certiNum,
-      학생명: studName,
-      강좌명: subName,
-      장소명: location,
-      교육날짜: eduDate,
-      교육시간: eduTimeFormatted,
+      certi_num: certiNum,
+      stud_name: studName,
+      sub_name: subName,
+      location: location,
+      edu_date: eduDate,
+      edu_time: eduTimeFormatted,
     };
 
     // 텍스트 교체 (XML 내에서 직접 교체)
